@@ -4,11 +4,11 @@ import jdk.nashorn.internal.runtime.Context;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 
 /**
  * Creates the user interface and handles all user-program
@@ -36,7 +36,7 @@ import java.awt.event.KeyListener;
  * @author      Lubna Mirza
  * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
  */
-public class GUI extends JFrame implements ActionListener, KeyListener, MenuListener {
+public class GUI extends JFrame implements ActionListener, KeyListener {
 
 	/**
 	 * An array of all components stored on the JFrame
@@ -107,9 +107,21 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 		JTextField textField12 = new javax.swing.JTextField();
 
 		//Add listeners
-		menu1.addMenuListener(this);
-		menu2.addMenuListener(this);
-		menu3.addMenuListener(this);
+		menu1.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				menuClick(e);
+			}
+		});
+		menu2.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				menuClick(e);
+			}
+		});
+		menu3.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				menuClick(e);
+			}
+		});
 		button1.addActionListener(this);
 		button2.addActionListener(this);
 		button3.addActionListener(this);
@@ -182,7 +194,7 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 		textField10.setText("Blocked file");
 		textField11.setText("Key file");
 		textField12.setText("Output filename");
-		menu1.setText("Help");
+		menu1.setText("Info");
 		menu2.setText("About");
 		menu3.setText("Help");
 
@@ -331,7 +343,7 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 			//If it is now selected
 			if(b.isSelected()){
 				//Enable text field(s)
-				for(int i = 1; i <= 5; i++){
+				for(int i = 1; i <= 2; i++){
 					//If not out of bounds
 				    if(component + i < 26) {
 						if (jArray[component + i] instanceof JTextField) {
@@ -339,7 +351,6 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 
 							//Turn on user input
 							returnVal = 1;
-							modified[component + i] = 1;
 						}
 					}
 				}
@@ -355,7 +366,6 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 
 							//Turn off user input
 							returnVal = 0;
-							modified[component + i] = 0;
 						}
 					}
 				}
@@ -380,7 +390,6 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 
 					//Turn on user input
 					returnVal = 1;
-					modified[component + 1] = 1;
 				}
 			}
 			//Not selected
@@ -391,7 +400,6 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 
 					//Turn off user input
 					returnVal = 0;
-					modified[component + 1] = 0;
 				}
 
 			}
@@ -401,6 +409,8 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 	}
 
 	protected void textFieldHandler(int component){
+
+		System.out.println( (jArray[component] instanceof JTextField) + " " + modified[component]);
 		//If it is a text field and has not been modified
 		if((jArray[component] instanceof JTextField) && (modified[component] == 0)) {
 			JTextField tf = (JTextField) jArray[component];
@@ -418,24 +428,64 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 		if(jArray[component] instanceof JMenu) {
 			JMenu m = (JMenu) jArray[component];
 
-			System.out.println(m.getText());
-
-			//If the "About menu was selected
+			//If the "About" menu was selected
 			if(m.getText() == "About"){
+				//Instantiate a new "About" frame
 				JFrame menuFrame = new JFrame("About");
-				menuFrame.setPreferredSize(new Dimension(200,200));
-				JPanel menuPanel = new JPanel(new GridLayout(1,1));
-				menuPanel.setPreferredSize(new Dimension(200,200));
-				JLabel menuLabel = new JLabel("This is the about menu");
-				menuLabel.setPreferredSize(new Dimension(200,200));
-
-				menuPanel.add(menuLabel);
+				menuFrame.setPreferredSize(new Dimension(400,250));
+				JPanel menuPanel = new JPanel();
+				String text = "Authors:" + "<br>" + "<br>" +
+						"Marek Rybakiewicz" + "<br>" +
+						"mrybak3@uic.edu" + "<br>" + "<br>" +
+						"Lubna Mirza" + "<br>" +
+						"lmirza3@uic.edu" + "<br>" + "<br>" + "<br>" +
+						"University of Illinois at Chicago" + "<br>" +
+						"CS 342 Spring 2016 Project 3";
+				JLabel label = new JLabel("<html><div style='text-align: center;'>" + text + "</html>");
+				menuPanel.add(label,BorderLayout.CENTER);
 				menuFrame.add(menuPanel);
 
-				menuFrame.pack();
-				menuFrame.setVisible(true);
+				//Set display options
+				menuFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 				menuFrame.setResizable(false);
+				menuFrame.pack();
+				menuFrame.setLocationRelativeTo(null);
+				menuFrame.setVisible(true);
 
+			}
+			//If the "Help" menu was selected
+			else if (m.getText() == "Help"){
+				//Instantiate a new "Help" frame
+				JFrame menuFrame = new JFrame("About");
+				menuFrame.setPreferredSize(new Dimension(800,450));
+				JPanel menuPanel = new JPanel();
+				String text = "Help:" + "<br>" + "<br>" +
+						"For all 4 commands, the user has the choice to provide a filename for input and/or output. " + "<br>" +
+						"The optional file text fields are initially greyed out and are only available after the user selects " + "<br>" +
+						"a radio button/combo box indicating that they would like to provide optional files for processing." + "<br>" + "<br>" +
+						"Create Key Pair:" + "<br>" +
+						"Generates a pair of private and public keys and associated files. " + "<br>" +
+						"The user has the option to provide an input file with prime numbers, and rename the output files." + "<br>" + "<br>" +
+						"Block a file:" + "<br>" +
+						"Takes an ASCII file along with the desired blocking size, " + "<br>" +
+						"and converts to a quasi-ASCII file separated into lines with [blocking size] amounts of characters." + "<br>" + "<br>" +
+						"Unblock a file:" + "<br>" +
+						"Takes an already-blocked file along with a blocking number and restores it to ASCII format." + "<br>" +
+						"It is the users responsibility to provide the blocking number, even though it may be assumed from the file." + "<br>" +
+						"This allows for ease of modification, although it may also damage output if an incorrect number is provided" + "<br>" + "<br>" +
+						"Cipher:" + "<br>" +
+						"Encrypts or decrypts an already-blocked file. Outputs a file with a single character blocking number." + "<br>" +
+						"The operation performed is dependent upon which key file the user provides. Key files must be in XML format";
+				JLabel label = new JLabel("<html><div style='text-align: center;'>" + text + "</html>");
+				menuPanel.add(label,BorderLayout.CENTER);
+				menuFrame.add(menuPanel);
+
+				//Set display options
+				menuFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				menuFrame.setResizable(false);
+				menuFrame.pack();
+				menuFrame.setLocationRelativeTo(null);
+				menuFrame.setVisible(true);
 
 			}
 
@@ -492,8 +542,8 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 
 	}
 
-	@Override
-	public void menuSelected(MenuEvent e) {
+
+	public void menuClick(MouseEvent e) {
 		//Try to identify the position of the component in the array
 		int component = -1;
 		for(int i = 0; i < 26; i++){
@@ -563,15 +613,5 @@ public class GUI extends JFrame implements ActionListener, KeyListener, MenuList
 	public void keyTyped(KeyEvent e) {
 	}
 
-
-	@Override
-	public void menuDeselected(MenuEvent e) {
-
-	}
-
-	@Override
-	public void menuCanceled(MenuEvent e) {
-
-	}
 
 }
