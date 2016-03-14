@@ -4,6 +4,7 @@ import jdk.nashorn.internal.runtime.Context;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
 
 /**
  * Creates the user interface and handles all user-program
@@ -59,6 +60,11 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	 * size and stores the resulting file name.
 	 */
 	protected Blocking blocks;
+
+	/**
+	 * File that stores prime numbers for usage in key creation
+	 */
+	protected static String primesFile = "primeNumbers.rsc";
 
 	/**
 	 * Creates new GUI
@@ -174,7 +180,7 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 		radioButton2.setText("Rename output file");
 		radioButton3.setText("Rename output file");
 		radioButton4.setText("Rename output file");
-		textField1.setText("Prime number input file");
+		textField1.setText("2 prime numbers (comma separated)");
 		textField2.setText("Private key file");
 		textField3.setText("Public key file");
 		textField4.setText("ASCII file");
@@ -401,8 +407,6 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	}
 
 	protected void textFieldHandler(int component){
-
-		System.out.println( (jArray[component] instanceof JTextField) + " " + modified[component]);
 		//If it is a text field and has not been modified
 		if((jArray[component] instanceof JTextField) && (modified[component] == 0)) {
 			JTextField tf = (JTextField) jArray[component];
@@ -484,6 +488,63 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
+
+	protected void createKeyPairHandler(){
+		//Check if numbers are provided
+		if(modified[6] == 1){
+			//Make sure input is correct
+			try{
+				String[] userPrimes = ((JTextField)jArray[7]).getText().split(",", 2);
+				if(userPrimes[0].trim().length() == 0)
+					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+				if(userPrimes[1].trim().length() == 0)
+					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+				if(userPrimes[0] == null && userPrimes[0].length() == 0)
+					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+				if(userPrimes[1] == null && userPrimes[1].length() == 0)
+					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+
+				//Passed, return a trimmed string
+				userPrimes[0] = userPrimes[0].trim();
+				userPrimes[1] = userPrimes[1].trim();
+			}
+			catch(ArrayIndexOutOfBoundsException e){
+				JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+			}
+
+
+			
+			//MAKE HUGE INTS OUT OF ARRAY INDECES. MAKE SURE TO CHECK FOR NON-INTS IN HUGEINT CONSTRUCTOR
+
+		}
+		//Otherwise use input file
+		else
+		{
+			//Generate 2 unique random places in the file (between 1-20)
+			Random rand = new Random();
+			int i = 0;
+			int j = 0;
+			while( i == j ) {
+				i = rand.nextInt(19);
+				j = rand.nextInt(19);
+			}
+
+
+		}
+	}
+
+    protected void blockFileHandler(){
+
+	}
+
+	protected void unblockFileHandler(){
+
+	}
+
+	protected void cipherHandler(){
+
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		//Try to identify the position of the component in the array
@@ -499,19 +560,31 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 			return;
 		}
 
+		System.out.println(component);
+
 		//Handle radio buttons
-		radioButtonHandler(component);
+		if(jArray[component] instanceof JRadioButton)
+			modified[component] = radioButtonHandler(component);
 
 		//Handle the combo box
-		comboBoxHandler(component);
+		if(jArray[component] instanceof JComboBox)
+			modified[component] = comboBoxHandler(component);
 
-		//Handle the Generate Primes button
+		//Handle the Create Key Pair button
+		if(e.getActionCommand() == "Create Key Pair")
+			createKeyPairHandler();
 
 		//Handle the Block button
+		if(e.getActionCommand() == "Block a file")
+			blockFileHandler();
 
 		//Handle the Unblock button
+		if(e.getActionCommand() == "Unblock a file")
+			unblockFileHandler();
 
 		//Handle the Cipher button
+		if(e.getActionCommand() == "Cipher")
+			cipherHandler();
 	}
 
 	@Override
