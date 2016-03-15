@@ -55,12 +55,6 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	protected KeyPair keys;
 
 	/**
-	 * An instance of Blocking, which blocks/unblocks a file based on blocking
-	 * size and stores the resulting file name.
-	 */
-	protected Blocking blocks;
-
-	/**
 	 * File that stores prime numbers for usage in key creation
 	 */
 	protected static String primesFile;
@@ -69,6 +63,12 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	 * File that stores the blocked numbers
 	 */
 	protected static String blockedFile;
+
+	/**
+	 * File that stores the unblocked ASCII characters
+	 */
+	protected static String unblockedFile;
+
 
 	/**
 	 * Creates new GUI
@@ -523,11 +523,11 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 		//Check if p*q is greater than 16129
 		//TODO
 		HugeInt checker = new HugeInt("16129");
-		HugeInt multTest = prime1.multiply(prime2);
-		if(multTest.lessThan(checker)){
-			JOptionPane.showMessageDialog(null,"Product of primes must be greater than 16129");
-			return;
-		}
+//		HugeInt multTest = prime1.multiply(prime2);
+//		if(multTest.lessThan(checker)){
+//			JOptionPane.showMessageDialog(null,"Product of primes must be greater than 16129");
+//			return;
+//		}
 
 		//Create the pair of keys and store locally
 		KeyPair keyPair = new KeyPair(prime1, prime2);
@@ -729,6 +729,46 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
+
+	protected void blockString(String text, int blockingSize){
+		//Check if file is to be renamed, rename if so
+		if(((JRadioButton)jArray[14]).isSelected()){
+			//Try to store filenames and rename key files
+			try{
+				//Get the text
+				String newFileName = (((JTextField)jArray[15]).getText());
+
+				if(newFileName.trim().length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				if(newFileName == null && newFileName.length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				//File must be a valid name
+				if(newFileName.toCharArray()[0] == '.' || newFileName.toCharArray()[0] == '.'){
+					JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+					return;
+				}
+
+				blockedFile = newFileName;
+
+			}
+			catch(ArrayIndexOutOfBoundsException e){
+				JOptionPane.showMessageDialog(null,"You must provide a non-empty filename with extension .xml");
+				return;
+			}
+		}
+		//Use default name if not
+		else{
+			blockedFile = "blockedFile.txt";
+		}
+
+		//Create an instance of blocking, and blocks file
+		Blocking b = new Blocking(blockingSize,text,0,blockedFile);
+	}
+
     protected void blockFileHandler(){
 		try {
 			//Check if blocking number is an integer
@@ -771,34 +811,115 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 				return;
 			}
 
-			//Save filename
+			//Save filename temporarily
 			blockedFile = fileName;
+			//Save file to string (since a string can hold 2gb of text)
+			String text = new Scanner(new File(blockedFile)).useDelimiter("\\Z").next();
+			System.out.println(text);
 
-			String content = new Scanner(new File(blockedFile)).useDelimiter("\\Z").next();
-			System.out.println(content);
-
-//			//Check if file exists, try to find the number of lines
-//			File f = new File(blockedFile);
-//			if (f.exists() && !f.isDirectory()) {
-//				LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(f));
-//				lineNumberReader.skip(Long.MAX_VALUE);
-//				lineCount = lineNumberReader.getLineNumber();
-//				lineNumberReader.close();
-//			}
-//			else{
-//				JOptionPane.showMessageDialog(null,"File not found");
-//				return;
-//			}
-
+			//Create blocked file
+			blockString(text, blockingNumber);
 		}
 		catch(Exception e){
-			JOptionPane.showMessageDialog(null,"File not found");
+			JOptionPane.showMessageDialog(null,"File not found or is empty");
 			return;
 		}
 	}
 
-	protected void unblockFileHandler(){
+	protected void unblockString(String text, int blockingSize){
+		//Check if file is to be renamed, rename if so
+		if(((JRadioButton)jArray[19]).isSelected()){
+			//Try to store filenames and rename key files
+			try{
+				//Get the text
+				String newFileName = (((JTextField)jArray[20]).getText());
 
+				if(newFileName.trim().length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				if(newFileName == null && newFileName.length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				//File must be a valid name
+				if(newFileName.toCharArray()[0] == '.' || newFileName.toCharArray()[0] == '.'){
+					JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+					return;
+				}
+
+				unblockedFile = newFileName;
+
+			}
+			catch(ArrayIndexOutOfBoundsException e){
+				JOptionPane.showMessageDialog(null,"You must provide a non-empty filename with extension .xml");
+				return;
+			}
+		}
+		//Use default name if not
+		else{
+			unblockedFile = "unblockedFile.txt";
+		}
+
+		//Create an instance of blocking, and unblocks file
+		Blocking b = new Blocking(blockingSize,text,1,unblockedFile);
+	}
+
+	protected void unblockFileHandler(){
+		try {
+			//Check if blocking number is an integer
+			String blockingString = ((JTextField)jArray[18]).getText();
+			blockingString = blockingString.trim();
+			for (char c : blockingString.toCharArray()) {
+				if (!Character.isDigit(c)) {
+					JOptionPane.showMessageDialog(null, "You must provide an integer blocking number");
+					return;
+				}
+			}
+			if(blockingString.trim().length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide an integer blocking number");
+				return;
+			}
+			if(blockingString == null && blockingString.length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide an integer blocking number");
+				return;
+			}
+			//Set blocking number
+			int blockingNumber = Integer.parseInt(blockingString);
+
+
+
+
+			//Get filename
+			String fileName = ((JTextField)jArray[17]).getText();
+
+			//Catch incorrect names
+			if(fileName.trim().length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			if(fileName == null && fileName.length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			//File must be a valid name
+			if(fileName.toCharArray()[0] == '.'){
+				JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+				return;
+			}
+
+			//Save filename temporarily
+			unblockedFile = fileName;
+			//Save file to string (since a string can hold 2gb of text)
+			String text = new Scanner(new File(unblockedFile)).useDelimiter("\\Z").next();
+
+			//Create unblocked file
+			unblockString(text, blockingNumber);
+		}
+		catch(Exception e){
+			JOptionPane.showMessageDialog(null,"File not found or is empty");
+			return;
+		}
 	}
 
 	protected void cipherHandler(){

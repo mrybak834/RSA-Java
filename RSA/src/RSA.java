@@ -15,6 +15,15 @@ public class RSA {
         //Create a new instance of the GUI, entering the UI loop
         GUI gui = new GUI();
 
+//        HugeInt addend = new HugeInt("999999");
+//        HugeInt test = new HugeInt("99");
+//        HugeInt result = test.add(addend);
+//
+//        System.out.println();
+//        for(int i: result.digitArr){
+//            System.out.print(i);
+//        }
+//        System.out.println();
     }
 
 }
