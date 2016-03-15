@@ -174,6 +174,10 @@ public class Blocking {
 				return;
 			}
 			else{
+				//Warn if incorrect blocking size
+				if(blockingSize < (lines[0].length()/2))
+					JOptionPane.showMessageDialog(null, "The blocking size does not correspond with the given file. Modifying anyways.");
+
 				//Parse each line based on blocking size
 				for(int i = 0; i < lines.length; i++ ){
 					char[] temp = lines[i].toCharArray();
