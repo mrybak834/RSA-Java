@@ -26,21 +26,12 @@ import java.util.Vector;
  * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
  */
 public class HugeInt {
-
 	/**
 	 * A Vector of integers that stores a huge integer value. A valid value is
 	 * unsigned, and indexed with the least significant bit in the 0<sup>th</sup>
 	 * position of the vector.
 	 */
 	protected Vector<Integer> value;
-
-	//Not used
-	public GUI rsaGUI;
-
-	//Not used
-	public void finalize() throws Throwable {
-
-	}
 
 	/**
 	 * The constructor takes a String representation of an integer and creates a new
@@ -58,7 +49,7 @@ public class HugeInt {
 	 * 
 	 * @param x
 	 */
-	protected Vector<Integer> add(HugeInt x){
+	protected HugeInt add(HugeInt x){
 		return null;
 	}
 
@@ -68,7 +59,7 @@ public class HugeInt {
 	 * 
 	 * @param x
 	 */
-	protected Vector<Integer> divide(HugeInt x){
+	protected HugeInt divide(HugeInt x){
 		return null;
 	}
 
@@ -134,7 +125,7 @@ public class HugeInt {
 	 * 
 	 * @param x
 	 */
-	protected Vector<Integer> modulus(HugeInt x){
+	protected HugeInt modulus(HugeInt x){
 		return null;
 	}
 
@@ -144,7 +135,7 @@ public class HugeInt {
 	 * 
 	 * @param x
 	 */
-	protected Vector<Integer> multiply(HugeInt x){
+	protected HugeInt multiply(HugeInt x){
 		return null;
 	}
 
@@ -154,7 +145,7 @@ public class HugeInt {
 	 * 
 	 * @param x
 	 */
-	protected Vector<Integer> subtract(HugeInt x){
+	protected HugeInt subtract(HugeInt x){
 		return null;
 	}
 
@@ -164,7 +155,7 @@ public class HugeInt {
 	 * 
 	 * @param x
 	 */
-	protected Vector<Integer> toThePowerOf(HugeInt x){
+	protected HugeInt toThePowerOf(HugeInt x){
 		return null;
 	}
 

@@ -1,10 +1,9 @@
-import com.sun.corba.se.impl.logging.OMGSystemException;
-import jdk.nashorn.internal.runtime.Context;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.util.Random;
+import java.util.Scanner;
 
 /**
  * Creates the user interface and handles all user-program
@@ -64,7 +63,12 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	/**
 	 * File that stores prime numbers for usage in key creation
 	 */
-	protected static String primesFile = "primeNumbers.rsc";
+	protected static String primesFile;
+
+	/**
+	 * File that stores the blocked numbers
+	 */
+	protected static String blockedFile;
 
 	/**
 	 * Creates new GUI
@@ -324,6 +328,9 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 
 		//Initialize modified array to reflect no change
 		modified = new int[26];
+
+		//Name prime number file
+		primesFile = "primeNumbers.rsc";
 	}
 
 
@@ -411,8 +418,15 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 		if((jArray[component] instanceof JTextField) && (modified[component] == 0)) {
 			JTextField tf = (JTextField) jArray[component];
 
-			//Clear the text
-			tf.setText("");
+			//Clear the text, set file extension
+			if(component == 9 || component == 10 || component == 23)
+				tf.setText(".xml");
+			else if (component == 12 || component == 17 || component == 22)
+				tf.setText(".txt");
+			else
+				tf.setText("");
+
+			tf.setCaretPosition(0);
 
 			//The component has been modified
 			modified[component] = 1;
@@ -489,52 +503,298 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	}
 
 
+	/**
+	 * Helper of createKeyPairHandler
+	 * @param p1
+	 * @param p2
+     */
+	protected void keyIntCreator(String p1, String p2 ){
+		//Create HugeInts
+		HugeInt prime1 = new HugeInt(p1);
+		HugeInt prime2 = new HugeInt(p2);
+
+		//Check if prime
+		//TODO
+		if(new KeyPair(prime1,prime2).primality(prime1,prime2) == false){
+			JOptionPane.showMessageDialog(null,"Numbers must be prime");
+			return;
+		}
+
+		//Check if p*q is greater than 16129
+		//TODO
+		HugeInt checker = new HugeInt("16129");
+		HugeInt multTest = prime1.multiply(prime2);
+		if(multTest.lessThan(checker)){
+			JOptionPane.showMessageDialog(null,"Product of primes must be greater than 16129");
+			return;
+		}
+
+		//Create the pair of keys and store locally
+		KeyPair keyPair = new KeyPair(prime1, prime2);
+		keys = keyPair;
+
+		//Check if output files are to be renamed, rename is so.
+		if(((JRadioButton)jArray[8]).isSelected()){
+			//Try to store filenames and rename key files
+			try{
+				//Get the text
+				String privateKeyFile = (((JTextField)jArray[9]).getText());
+				String publicKeyFile =  (((JTextField)jArray[10]).getText());
+
+				if(privateKeyFile.trim().length() == 0 || publicKeyFile.trim().length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				if(privateKeyFile == null && privateKeyFile.length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				if(publicKeyFile == null && publicKeyFile.length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				//File must end in .xml
+				if(!privateKeyFile.endsWith(".xml") || !publicKeyFile.endsWith(".xml")){
+					JOptionPane.showMessageDialog(null, "Filename must end with .xml extension");
+					return;
+				}
+				//File must be a valid name
+				if(privateKeyFile.toCharArray()[0] == '.' || publicKeyFile.toCharArray()[0] == '.'){
+					JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+					return;
+				}
+
+				//Rename the files and store locally
+				keyPair.createKeyFiles(keyPair, privateKeyFile, publicKeyFile);
+				keys = keyPair;
+			}
+			catch(ArrayIndexOutOfBoundsException e){
+				JOptionPane.showMessageDialog(null,"You must provide a non-empty filename with extension .xml");
+				return;
+			}
+		}
+	}
+
 	protected void createKeyPairHandler(){
 		//Check if numbers are provided
 		if(modified[6] == 1){
 			//Make sure input is correct
 			try{
+				//Check length conditions
 				String[] userPrimes = ((JTextField)jArray[7]).getText().split(",", 2);
-				if(userPrimes[0].trim().length() == 0)
-					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
-				if(userPrimes[1].trim().length() == 0)
-					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
-				if(userPrimes[0] == null && userPrimes[0].length() == 0)
-					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
-				if(userPrimes[1] == null && userPrimes[1].length() == 0)
-					JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+				if(userPrimes[0].trim().length() == 0 || userPrimes[1].trim().length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide 2 integers, separated by a comma");
+					return;
+				}
+				if(userPrimes[0] == null && userPrimes[0].length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide 2 integers, separated by a comma");
+					return;
+				}
+				if(userPrimes[1] == null && userPrimes[1].length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide 2 integers, separated by a comma");
+					return;
+				}
 
 				//Passed, return a trimmed string
 				userPrimes[0] = userPrimes[0].trim();
 				userPrimes[1] = userPrimes[1].trim();
+
+				//Make sure it is an integer string
+				for(char c: userPrimes[0].toCharArray()){
+					if(!Character.isDigit(c)) {
+						JOptionPane.showMessageDialog(null,"You must provide 2 integers");
+						return;
+					}
+				}
+				for(char c: userPrimes[1].toCharArray()){
+					if(!Character.isDigit(c)) {
+						JOptionPane.showMessageDialog(null,"You must provide 2 integers");
+						return;
+					}
+				}
+
+
+				//We have a valid pair of prime int strings
+				keyIntCreator(userPrimes[0], userPrimes[1]);
 			}
 			catch(ArrayIndexOutOfBoundsException e){
 				JOptionPane.showMessageDialog(null,"You must provide 2 integers, separated by a comma");
+				return;
 			}
-
-
-			
-			//MAKE HUGE INTS OUT OF ARRAY INDECES. MAKE SURE TO CHECK FOR NON-INTS IN HUGEINT CONSTRUCTOR
-
+			catch(NumberFormatException	e){
+				JOptionPane.showMessageDialog(null,"You must provide 2 integers");
+				return;
+			}
 		}
 		//Otherwise use input file
 		else
 		{
-			//Generate 2 unique random places in the file (between 1-20)
-			Random rand = new Random();
-			int i = 0;
-			int j = 0;
-			while( i == j ) {
-				i = rand.nextInt(19);
-				j = rand.nextInt(19);
-			}
+			try{
+				int lineCount;
+				String prime1 = "0";
+				String prime2 = "0";
 
+				//Check if file exists, try to find the number of lines
+				File f = new File(primesFile);
+				if (f.exists() && !f.isDirectory()) {
+					LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(f));
+					lineNumberReader.skip(Long.MAX_VALUE);
+					lineCount = lineNumberReader.getLineNumber();
+					lineNumberReader.close();
+				}
+				else{
+					JOptionPane.showMessageDialog(null,"File not found");
+					return;
+				}
+
+				//File too short
+				if(lineCount < 20){
+					JOptionPane.showMessageDialog(null,"File must have at least 20 integers");
+					return;
+				}
+
+				//Generate 2 unique random places in the file
+				Random rand = new Random();
+				int rand1 = 0;
+				int rand2 = 0;
+				while( rand1 == rand2 ) {
+					rand1 = rand.nextInt(lineCount);
+					rand2 = rand.nextInt(lineCount);
+				}
+
+				//Check if file exists
+				f = new File(primesFile);
+				if (f.exists() && !f.isDirectory()) {
+					//Create file readers
+					FileInputStream fs = new FileInputStream(f);
+					//Construct BufferedReader from InputStreamReader
+					BufferedReader br = new BufferedReader(new InputStreamReader(fs));
+
+					//Read file and store primes
+					String line = null;
+					for(int i = 0; i < lineCount; i++) {
+						//Read line
+						if ((line = br.readLine()) != null) {
+							//If non-whitespace
+							if (line.trim().length() > 0){
+								//Remove whitespace
+								line = line.trim();
+								//Check if integer
+								for(char c: line.toCharArray()){
+									if(!Character.isDigit(c)) {
+										JOptionPane.showMessageDialog(null,"You must provide 2 integers");
+										return;
+									}
+								}
+
+								//Store if at random coordinate
+								if(rand1 == i) {
+									prime1 = line;
+								}
+								if(rand2 == i) {
+									prime2 = line;
+								}
+							}
+							//whitespace
+							else{
+								JOptionPane.showMessageDialog(null,"File must have an integer on every line");
+								return;
+							}
+						}
+						//Incorrect input file
+						else{
+							JOptionPane.showMessageDialog(null,"File must have at least 20 integers");
+							return;
+						}
+					}
+					//Close reader
+					br.close();
+				}
+				//File not found
+				else{
+					JOptionPane.showMessageDialog(null,"File not found");
+					return;
+				}
+
+				//Found and usable, so create keys
+				System.out.println(prime1 + " " + prime2);
+				keyIntCreator(prime1,prime2);
+			}
+			//Incorrect file format
+			catch(Exception e){
+				JOptionPane.showMessageDialog(null,"File is of incorrect format. Must be at least 20 lines with 1 prime number per line");
+				return;
+			}
 
 		}
 	}
 
     protected void blockFileHandler(){
+		try {
+			//Check if blocking number is an integer
+			String blockingString = ((JTextField)jArray[13]).getText();
+			blockingString = blockingString.trim();
+			for (char c : blockingString.toCharArray()) {
+				System.out.println(c);
+				if (!Character.isDigit(c)) {
+					JOptionPane.showMessageDialog(null, "You must provide an integer blocking number");
+					return;
+				}
+			}
+			if(blockingString.trim().length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide an integer blocking number");
+				return;
+			}
+			if(blockingString == null && blockingString.length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide an integer blocking number");
+				return;
+			}
+			//Set blocking number
+			int blockingNumber = Integer.parseInt(blockingString);
 
+
+			//Get filename
+			String fileName = ((JTextField)jArray[12]).getText();
+
+			//Catch incorrect names
+			if(fileName.trim().length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			if(fileName == null && fileName.length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			//File must be a valid name
+			if(fileName.toCharArray()[0] == '.'){
+				JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+				return;
+			}
+
+			//Save filename
+			blockedFile = fileName;
+
+			String content = new Scanner(new File(blockedFile)).useDelimiter("\\Z").next();
+			System.out.println(content);
+
+//			//Check if file exists, try to find the number of lines
+//			File f = new File(blockedFile);
+//			if (f.exists() && !f.isDirectory()) {
+//				LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(f));
+//				lineNumberReader.skip(Long.MAX_VALUE);
+//				lineCount = lineNumberReader.getLineNumber();
+//				lineNumberReader.close();
+//			}
+//			else{
+//				JOptionPane.showMessageDialog(null,"File not found");
+//				return;
+//			}
+
+		}
+		catch(Exception e){
+			JOptionPane.showMessageDialog(null,"File not found");
+			return;
+		}
 	}
 
 	protected void unblockFileHandler(){

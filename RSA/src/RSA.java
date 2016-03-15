@@ -14,6 +14,7 @@ public class RSA {
     public static void main(String args[]) {
         //Create a new instance of the GUI, entering the UI loop
         GUI gui = new GUI();
+
     }
 
 }

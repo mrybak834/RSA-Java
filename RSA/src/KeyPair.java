@@ -96,7 +96,7 @@ public class KeyPair extends HugeInt {
 	 * The secondary constructor takes a file that contains prime numbers and picks 2
 	 * valid primes of correct magnitude and creates new values out of them.
 	 * Execution is then passed to the primary constructor.
-	 * 
+	 *
 	 * @param file
 	 */
 	public KeyPair(String file){
@@ -107,13 +107,11 @@ public class KeyPair extends HugeInt {
 	 * Creates 2 key files: one that stores the private key, and one that stores the
 	 * public key, along with both files storing the nKey value.
 	 * The files are stored in XML format.
-	 * 
-	 * A prompt asks the user before file generation if they would like to rename the
-	 * files, and the names of the files are stored locally.
+	 *
 	 * 
 	 * @param keys
 	 */
-	protected void createKeyFiles(KeyPair keys){
+	protected void createKeyFiles(KeyPair keys, String privateFileName, String publicFileName){
 
 	}
 
@@ -167,6 +165,7 @@ public class KeyPair extends HugeInt {
 	 * @param phi
 	 */
 	public int createPrivateKey(KeyPair keys, HugeInt phi){
+
 		return 0;
 	}
 
@@ -181,6 +180,7 @@ public class KeyPair extends HugeInt {
 	 * @param p2
 	 */
 	protected boolean primality(HugeInt p1, HugeInt p2){
+
 		return false;
 	}
 
