@@ -1,3 +1,5 @@
+import javax.swing.*;
+import java.io.PrintWriter;
 import java.util.Vector;
 
 /**
@@ -71,10 +73,6 @@ public class KeyPair extends HugeInt {
 
 	}
 
-	public void finalize() throws Throwable {
-		super.finalize();
-	}
-
 	/**
 	 * The primary constructor takes two prime number values. A helper method
 	 * checks the primality and cardinality, after which execution is passed to other
@@ -89,18 +87,18 @@ public class KeyPair extends HugeInt {
 	 * @param p2
 	 */
 	public KeyPair(HugeInt p1, HugeInt p2){
+		createNKey(p1,p2);
+		createPhi(p1,p2);
 
-	}
 
-	/**
-	 * The secondary constructor takes a file that contains prime numbers and picks 2
-	 * valid primes of correct magnitude and creates new values out of them.
-	 * Execution is then passed to the primary constructor.
-	 *
-	 * @param file
-	 */
-	public KeyPair(String file){
 
+
+
+
+
+
+		publicKey = p1;
+		privateKey = p2;
 	}
 
 	/**
@@ -108,11 +106,68 @@ public class KeyPair extends HugeInt {
 	 * public key, along with both files storing the nKey value.
 	 * The files are stored in XML format.
 	 *
-	 * 
-	 * @param keys
 	 */
-	protected void createKeyFiles(KeyPair keys, String privateFileName, String publicFileName){
+	protected void createKeyFiles(String privateFileName, String publicFileName){
+		//Ends in xml, everything working, proceed
+		try{
+			//Create a new private key file
+			PrintWriter writer = new PrintWriter(privateFileName, "UTF-8");
 
+			writer.println("<rsakey>");
+			writer.print("	<dvalue>");
+
+			//Print key
+			for(int i: privateKey.digitArr){
+				writer.print(i);
+			}
+
+			writer.println("</dvalue>");
+
+
+			writer.print("	<nvalue>");
+			//Print key
+			for(int i: nKey.digitArr){
+				writer.print(i);
+			}
+			writer.println("</nvalue>");
+
+			writer.print("</rsakey>");
+
+			writer.close();
+
+
+
+
+			//Create a new public key file
+			writer = new PrintWriter(publicFileName, "UTF-8");
+
+			writer.println("<rsakey>");
+			writer.print("	<evalue>");
+
+			//Print key
+			for(int i: publicKey.digitArr){
+				writer.print(i);
+			}
+			writer.println("</evalue>");
+
+
+			writer.print("	<nvalue>");
+			//Print key
+			for(int i: nKey.digitArr){
+				writer.print(i);
+			}
+			writer.println("</nvalue>");
+
+			writer.print("</rsakey>");
+
+			writer.close();
+
+
+		}
+		catch(Exception e){
+			JOptionPane.showMessageDialog(null, "Keys could not be written to file");
+			return;
+		}
 	}
 
 	/**
@@ -124,7 +179,7 @@ public class KeyPair extends HugeInt {
 	 * @param p2
 	 */
 	protected void createNKey(HugeInt p1, HugeInt p2){
-
+		nKey = p1.multiply(p2);
 	}
 
 	/**
@@ -137,7 +192,10 @@ public class KeyPair extends HugeInt {
 	 * @param p2
 	 */
 	private void createPhi(HugeInt p1, HugeInt p2){
+		HugeInt p1sub = p1.subtract(new HugeInt("1"));
+		HugeInt p2sub = p2.subtract(new HugeInt("1"));
 
+		phi = p1sub.multiply(p2sub);
 	}
 
 
@@ -146,10 +204,11 @@ public class KeyPair extends HugeInt {
 	 *
 	 * Public key (e) = a value that is less than NKey and is relatively prime to phi.
 	 *
-	 * @param phi
-	 * @param nKey
+
 	 */
-	public int createPublicKey(HugeInt phi, KeyPair nKey){
+	public int createPublicKey(){
+
+
 		return 0;
 	}
 
@@ -181,7 +240,7 @@ public class KeyPair extends HugeInt {
 	 */
 	protected boolean primality(HugeInt p1, HugeInt p2){
 
-		return false;
+		return true;
 	}
 
 }

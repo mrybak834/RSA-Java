@@ -1,3 +1,7 @@
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Scanner;
+
 /**
  * Handles encryption and decryption of a message file based on the public and
  * private keys, and an indicator of what type of cipher is to occur.
@@ -18,34 +22,46 @@
  * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
  */
 public class Cipher {
-
-	/**
-	 * The names of the encrypted and decrypted files.
-	 */
-	protected String[] fileNames;
-	public GUI rsaGUI;
-
-	public Cipher(){
-
-	}
-
-	public void finalize() throws Throwable {
-
-	}
-
 	/**
 	 * The primary constructor takes the private and public keys as well as the type
 	 * of ciphering to be done and the file name and passes execution to helper
 	 * methods which encrypt or decrypt an already-blocked message file, which is then
 	 * stored in a corresponding file that the user can choose to name. The name of
 	 * the file is stored into the data member.
-	 * 
-	 * @param keys
-	 * @param type
+	 *
 	 * @param message
 	 */
-	public Cipher(KeyPair keys, int type, String message){
+	public Cipher(String message, String keyFileText, String outputFileName){
 
+		try {
+			//Determine which key is provided
+
+			System.out.println(message);
+			System.out.println(keyFileText);
+			System.out.println(outputFileName);
+
+			//0 if encryption, 1 if decryption
+			int type = 0;
+
+			//
+
+
+			if (type == 0) {
+				if (outputFileName.equals(" "))
+					encrypt(message, keyFileText, "encryptedText.txt");
+				else
+					encrypt(message, keyFileText, outputFileName);
+			} else {
+				if (outputFileName.equals(" "))
+					decrypt(message, keyFileText, "decryptedText.txt");
+				else
+					decrypt(message, keyFileText, outputFileName);
+
+			}
+		}
+		catch(Exception e){
+
+		}
 	}
 
 	/**
@@ -59,7 +75,7 @@ public class Cipher {
 	 * 
 	 * @param keys
 	 */
-	protected void decrypt(KeyPair keys){
+	protected void decrypt(String message, String keyFileText, String outputFileName){
 
 	}
 
@@ -73,7 +89,7 @@ public class Cipher {
 	 * 
 	 * @param keys
 	 */
-	protected void encrypt(KeyPair keys){
+	protected void encrypt(String message, String keyFileText, String outputFileName){
 
 	}
 

@@ -69,6 +69,10 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	 */
 	protected static String unblockedFile;
 
+	/**
+	 * XML file that stores a private or public key
+	 */
+	protected static String keyFile;
 
 	/**
 	 * Creates new GUI
@@ -509,69 +513,80 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	 * @param p2
      */
 	protected void keyIntCreator(String p1, String p2 ){
-		//Create HugeInts
-		HugeInt prime1 = new HugeInt(p1);
-		HugeInt prime2 = new HugeInt(p2);
+		try{
+			//Create HugeInts
+			HugeInt prime1 = new HugeInt(p1);
+			HugeInt prime2 = new HugeInt(p2);
 
-		//Check if prime
-		//TODO
-		if(new KeyPair(prime1,prime2).primality(prime1,prime2) == false){
-			JOptionPane.showMessageDialog(null,"Numbers must be prime");
-			return;
-		}
-
-		//Check if p*q is greater than 16129
-		//TODO
-		HugeInt checker = new HugeInt("16129");
-//		HugeInt multTest = prime1.multiply(prime2);
-//		if(multTest.lessThan(checker)){
-//			JOptionPane.showMessageDialog(null,"Product of primes must be greater than 16129");
-//			return;
-//		}
-
-		//Create the pair of keys and store locally
-		KeyPair keyPair = new KeyPair(prime1, prime2);
-		keys = keyPair;
-
-		//Check if output files are to be renamed, rename is so.
-		if(((JRadioButton)jArray[8]).isSelected()){
-			//Try to store filenames and rename key files
-			try{
-				//Get the text
-				String privateKeyFile = (((JTextField)jArray[9]).getText());
-				String publicKeyFile =  (((JTextField)jArray[10]).getText());
-
-				if(privateKeyFile.trim().length() == 0 || publicKeyFile.trim().length() == 0) {
-					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
-					return;
-				}
-				if(privateKeyFile == null && privateKeyFile.length() == 0) {
-					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
-					return;
-				}
-				if(publicKeyFile == null && publicKeyFile.length() == 0) {
-					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
-					return;
-				}
-				//File must end in .xml
-				if(!privateKeyFile.endsWith(".xml") || !publicKeyFile.endsWith(".xml")){
-					JOptionPane.showMessageDialog(null, "Filename must end with .xml extension");
-					return;
-				}
-				//File must be a valid name
-				if(privateKeyFile.toCharArray()[0] == '.' || publicKeyFile.toCharArray()[0] == '.'){
-					JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
-					return;
-				}
-
-				//Rename the files and store locally
-				keyPair.createKeyFiles(keyPair, privateKeyFile, publicKeyFile);
-				keys = keyPair;
-			}
-			catch(ArrayIndexOutOfBoundsException e){
-				JOptionPane.showMessageDialog(null,"You must provide a non-empty filename with extension .xml");
+			//Check if prime
+			//TODO
+			if (new KeyPair(prime1, prime2).primality(prime1, prime2) == false) {
+				JOptionPane.showMessageDialog(null, "Numbers must be prime");
 				return;
 			}
+
+			//Check if p*q is greater than 16129
+			HugeInt checker = new HugeInt("16129");
+			HugeInt mult = prime1.multiply(prime2);
+			if(!(mult.compare(mult,checker) == 0)){
+				JOptionPane.showMessageDialog(null,"Product of primes must be greater than 16129");
+				return;
+			}
+
+			//Create the pair of keys
+			KeyPair keyPair = new KeyPair(prime1, prime2);
+			keys = keyPair;
+
+
+			//Check if output files are to be renamed, rename is so.
+			if (((JRadioButton) jArray[8]).isSelected()) {
+				//Try to store filenames and rename key files
+				try {
+					//Get the text
+					String privateKeyFile = (((JTextField) jArray[9]).getText());
+					String publicKeyFile = (((JTextField) jArray[10]).getText());
+
+					if (privateKeyFile.trim().length() == 0 || publicKeyFile.trim().length() == 0) {
+						JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+						return;
+					}
+					if (privateKeyFile == null && privateKeyFile.length() == 0) {
+						JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+						return;
+					}
+					if (publicKeyFile == null && publicKeyFile.length() == 0) {
+						JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+						return;
+					}
+					//File must end in .xml
+					if (!privateKeyFile.endsWith(".xml") || !publicKeyFile.endsWith(".xml")) {
+						JOptionPane.showMessageDialog(null, "Filename must end with .xml extension");
+						return;
+					}
+					//File must be a valid name
+					if (privateKeyFile.toCharArray()[0] == '.' || publicKeyFile.toCharArray()[0] == '.') {
+						JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+						return;
+					}
+
+					privateKeyFile = privateKeyFile.trim();
+					publicKeyFile = publicKeyFile.trim();
+
+					//Rename the files and store locally
+					keyPair.createKeyFiles(privateKeyFile, publicKeyFile);
+					keys = keyPair;
+				} catch (ArrayIndexOutOfBoundsException e) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename with extension .xml");
+					return;
+				}
+			}
+			//Otherwise, default names
+			keyPair.createKeyFiles("privateKeyFile.xml", "publicKeyFile.xml");
+			keys = keyPair;
+		}
+		catch(Exception e){
+			JOptionPane.showMessageDialog(null, "Key creation failed");
+			return;
 		}
 	}
 
@@ -922,8 +937,78 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
-	protected void cipherHandler(){
+	protected void cipherHandler() {
+		try {
+			//Get filename
+			String blockedFileName = ((JTextField)jArray[22]).getText();
+			String keyFileName	= ((JTextField)jArray[23]).getText();
 
+			//Catch incorrect names
+			if(blockedFileName.trim().length() == 0 || keyFileName.trim().length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			if(blockedFileName == null && blockedFileName.length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			if(keyFileName == null && keyFileName.length() == 0) {
+				JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+				return;
+			}
+			//File must be a valid name
+			if(blockedFileName.toCharArray()[0] == '.'  || keyFileName.toCharArray()[0] == '.' ){
+				JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+				return;
+			}
+			//File must end in .xml
+			if (!keyFileName.endsWith(".xml")) {
+				JOptionPane.showMessageDialog(null, "Filename must end with .xml extension");
+				return;
+			}
+
+			//Save filenames temporarily
+			blockedFile = blockedFileName;
+			keyFile = keyFileName;
+			String outputCipherFile = " ";
+
+			//Check if output files are to be renamed, rename is so.
+			if (((JRadioButton) jArray[24]).isSelected()) {
+				//Try to store filenames and rename key files
+				//Get the text
+				outputCipherFile = (((JTextField) jArray[25]).getText());
+
+				if (outputCipherFile.trim().length() == 0 || outputCipherFile.trim().length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				if (outputCipherFile == null && outputCipherFile.length() == 0) {
+					JOptionPane.showMessageDialog(null, "You must provide a non-empty filename");
+					return;
+				}
+				//File must be a valid name
+				if (outputCipherFile.toCharArray()[0] == '.') {
+					JOptionPane.showMessageDialog(null, "Filename must not be blank or have invalid characters");
+					return;
+				}
+
+				//Rename file and store locally
+				outputCipherFile = outputCipherFile.trim();
+			}
+
+			//Save file to string (since a string can hold 2gb of text)
+			String text = new Scanner(new File(blockedFile)).useDelimiter("\\Z").next();
+			String keyText = new Scanner(new File(keyFile)).useDelimiter("\\Z").next();
+
+			//Handle ciphering
+			Cipher cipher = new Cipher(text, keyText,outputCipherFile);
+
+
+		}
+		catch(Exception e){
+			JOptionPane.showMessageDialog(null, "File not found or is empty");
+			return;
+		}
 	}
 
 	@Override

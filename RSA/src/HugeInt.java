@@ -23,17 +23,13 @@
  * @author      Lubna Mirza
  * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
  */
-
 public class HugeInt {
 
 	//Array size
 	private int intLength;
 	// this array will contain every digit of the huge integer array
-	private int digitArr[];
+	public int digitArr[];
 
-	public HugeInt(){
-
-	}
 	/********************Constructor Taking String***************************/
 	public HugeInt(String numStr)
 	{
@@ -53,6 +49,7 @@ public class HugeInt {
 		this.intLength = tempLength;
 	}
 
+	public HugeInt() { digitArr = new int[10]; }
 	/********************Constructor taking array***************************/
 	public HugeInt(int[] array)
 	{
@@ -91,12 +88,13 @@ public class HugeInt {
 		addDigits(paddedArr, paddedArr.length-1, addend.digitArr);
 		//store result into a new instance
 		result = new HugeInt(paddedArr);
+		HugeInt trimmedResult = trimArray(result);
 		//return instance
-		return result;
+		return trimmedResult;
 	}
 
 	//Add Method Helper Function
-	private void addDigits(int[] result, int resultIndex, int[] addend)
+	private void addDigits(int[] result, int resultIndex, int... addend)
 	{
 		for (int addendIndex = addend.length-1; addendIndex >=0; addendIndex--)
 		{
@@ -128,8 +126,10 @@ public class HugeInt {
 		subDigits(paddedArr, paddedArr.length-1, addend.digitArr);
 		//store result into a new instance
 		result = new HugeInt(paddedArr);
+		//trim result
+		HugeInt trimmedResult = trimArray(result);
 		//return instance
-		return result;
+		return trimmedResult;
 	}
 
 	//subtract method helper function
@@ -142,7 +142,7 @@ public class HugeInt {
 		}
 	}
 
-	//Add Method Helper Function
+	//Subtract Method Helper Function
 	private void subDigit(int[] result, int resultIndex, int val2)
 	{
 		int difference;
@@ -158,6 +158,263 @@ public class HugeInt {
 			difference = (result[resultIndex]+10) - val2;
 			result[resultIndex] = difference;
 		}
+	}
+
+	/********************Multiplication Method***************************/
+
+	//Errors So Far: str1 cannot be smaller than str2.
+
+	public HugeInt multiply(HugeInt val2) {
+		HugeInt result;
+		//get padded array from multiplying two values
+		int[] paddedArr = paddedMultArray(val2);
+		//call helper function
+		multiplyDigits(paddedArr, paddedArr.length-1, this.digitArr, val2.digitArr);
+
+		result = new HugeInt(paddedArr);
+		HugeInt trimmedResult = trimArray(result);
+		//return instance
+		return trimmedResult;
+	}
+
+	//helper function to get padded array for multiplying two numbers
+	private int[] paddedMultArray (HugeInt val2)
+	{
+		int paddedArr[];
+		int productSize;
+		productSize = this.digitArr.length + val2.digitArr.length;
+		paddedArr = new int[productSize];
+		return paddedArr;
+	}
+
+	//making sure to multiply each digit from val2 to each digit from val1
+	private void multiplyDigits(int[] multArr, int multArrIndex, int[] val1, int[] val2) {
+		int lastArrPos;
+		for(int i = 0; i < val1.length; i++) {
+			for(int j = 0; j < val2.length; j++)
+			{
+				multiplyDigit(multArr, multArrIndex - (i + j),val1[val1.length-i-1], val2[val2.length-j-1]);
+			}
+		}
+	}
+	//multiplication method
+	private void multiplyDigit(int[] result, int resultIndex, int val1, int val2) {
+		int product = val1 * val2;
+		int productVal = product%10;
+		int carry = product/10;
+		addDigits(result, resultIndex, carry, productVal);
+	}
+
+	/********************Division Method***************************/
+	public HugeInt divide(HugeInt val2) {
+
+		//Trim both arrays to make sure we don't have any leading zeroes
+		HugeInt dividend = trimArray(this);
+		HugeInt divisor = trimArray(val2);
+
+		//THIS MAY NOT BE AN EMPTY ARRAY IM NOT SURE.
+		HugeInt result = new HugeInt(dividend.digitArr);
+
+		//compare to make sure that the dividend is larger than the divisor
+		int comparison = compare(dividend,divisor);
+		if (comparison != 0 && comparison != 2)
+		{
+			System.out.println("Invalid Division Request");
+		}
+
+		//capturing the length of the divisor
+		int divisorLength = divisor.digitArr.length;
+
+		divideDigits(dividend, divisor, divisorLength, result);
+		return result;
+	}
+
+	public void divideDigits(HugeInt dividend, HugeInt divisor, int divisorLength, HugeInt result)
+	{
+		//the appropriate amount to divide the dividend by will either be the size of the divisor
+		//or the size of the divisor plus 1.
+
+		int[] array = new int[divisorLength];
+		for (int i = 0; i < array.length; i++)
+		{
+			array[i] = dividend.digitArr[i];
+			//System.out.println(array[i]);
+		}
+
+		if (compare(array,divisor.digitArr) == 1)
+		{
+			int[] array2 = new int[divisorLength+1];
+			for (int i = 0; i < array2.length; i++)
+			{
+				array2[i] = dividend.digitArr[i];
+				// System.out.println(array2[i]);
+			}
+
+			int arrLength = array2.length;
+			int[] remainingArr = new int[dividend.digitArr.length-divisor.digitArr.length];
+			for (int i = 0; i<remainingArr.length-1; i++)
+			{
+				remainingArr[i] = dividend.digitArr[arrLength+i];
+			}
+
+			//call the helper divide function that will divide the two
+			divideDigit(array2,divisor.digitArr,result.digitArr,arrLength);
+		}
+	}
+
+	public void divideDigit(int[] dividend, int[] divisor, int[] resultArr, int arrLength) {
+		int counter = 1;
+		int[] remainder;
+		int[] newArr;
+
+		while (compare(dividend,divisor) == 0)
+		{
+			subDigits(dividend,dividend.length-1,divisor);
+			dividend = trimArray(dividend);
+			counter++;
+		}
+		if (compare(dividend,divisor) == 1)
+		{
+			//return dividend because it contains the remainder
+			remainder = dividend;
+			remainder = trimArray(remainder);
+			resultArr = new int[resultArr.length-arrLength];
+			for (int i = 0; i < remainder.length; i++)
+			{
+				resultArr[i] = remainder[i];
+				System.out.println("NEW ARRAY");
+				System.out.println(resultArr[i]);
+			}
+
+		}
+
+		System.out.println("COUNTER");
+		// System.out.println(counter);
+
+
+	}
+
+
+
+
+	/********************Comparator Method***************************/
+	//RETURNS 0 IF VAL 1 > VAL 2
+	//RETURNS 1 IF VAL 1 < VAL 2
+	//RETURNS 2 IF VAL 1 = VAL 2
+	//RETURNS -1 ON ERROR
+
+	public int compare(HugeInt val1, HugeInt val2)
+	{
+		//checking if there's more digits in val1 than in val2
+		if (val1.digitArr.length > val2.digitArr.length)
+		{
+			return 0;
+		}
+		//checking if there's more digits in val2 than in val1
+		if (val1.digitArr.length < val2.digitArr.length)
+		{
+			return 1;
+		}
+		//if they're the same length, we need to check more in-depth.
+		if (val1.digitArr.length == val2.digitArr.length)
+		{
+			for (int i = 0; i < val1.digitArr.length; i++)
+			{
+				if (val1.digitArr[i] > val1.digitArr[i])
+				{
+					return 0;
+				}
+				if (val1.digitArr[i] < val1.digitArr[i])
+				{
+					return 1;
+				}
+			}
+			//they must be equal
+			return 2;
+		}
+		return -1;
+	}
+
+
+	public int compare(int[] val1, int[] val2)
+	{
+		//checking if there's more digits in val1 than in val2
+		if (val1.length > val2.length)
+		{
+			return 0;
+		}
+		//checking if there's more digits in val2 than in val1
+		if (val1.length < val2.length)
+		{
+			return 1;
+		}
+		//if they're the same length, we need to check more in-depth.
+		if (val1.length == val2.length)
+		{
+			for (int i = 0; i < val1.length; i++)
+			{
+				if (val1[i] > val2[i])
+				{
+					return 0;
+				}
+				if (val1[i] < val2[i])
+				{
+					return 1;
+				}
+			}
+			//they must be equal
+			return 2;
+		}
+		return -1;
+	}
+
+	/********************Removing Zeroes from Padded Array Method***************************/
+	public HugeInt trimArray(HugeInt val1)
+	{
+		int index = 0;
+		//finding the index that starts the actual value
+		for (int i = 0; i < val1.digitArr.length; i++)
+		{
+			if (val1.digitArr[i] != 0)
+			{
+				index = i;
+				break;
+			}
+		}
+
+		//making a new array of appropriate size
+		int[] newInt = new int[val1.digitArr.length-index];
+
+		for (int i = 0; i< newInt.length; i++)
+		{
+			newInt[i] = val1.digitArr[i+index];
+		}
+		HugeInt result = new HugeInt(newInt);
+		return result;
+	}
+
+	//TRIM METHOD FOR ARRAY
+	public int[] trimArray(int[] val1)
+	{
+		int index = 0;
+		//finding the index that starts the actual value
+		for (int i = 0; i < val1.length; i++)
+		{
+			if (val1[i] != 0)
+			{
+				index = i;
+				break;
+			}
+		}
+
+		//making a new array of appropriate size
+		int[] newInt = new int[val1.length-index];
+
+		for (int i = 0; i< newInt.length; i++)
+		{
+			newInt[i] = val1[i+index];
+		}
+		return newInt;
 	}
 
 	/********************Convert to String Method***************************/
