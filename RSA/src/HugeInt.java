@@ -23,12 +23,42 @@
  * @author      Lubna Mirza
  * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
  */
+/**
+ * Handles all operations and storage for very large integers.
+ *
+ * The single data member is a value, which is the vector-based
+ * representation of a large integer.
+ *
+ * The default constructor hugeInt() acts as a dummy constructor for use in
+ * child classes.
+ * The main constructor hugeInt(String) takes a string representation of an
+ * integer and generates a value.
+ *
+ * All other methods are mathematical operations that can be performed on the
+ * local value, given an outside value.
+ * The math operations include:
+ *    Addition, subtraction, multiplication, division, modulus, relational
+ * operations, and exponentiation.
+ *
+ * @version     1.0.0
+ * @university  University of Illinois at Chicago
+ * @course      CS342 - Software Design
+ * @package     Project #03 - RSA-Java
+ * @author      Marek Rybakiewicz
+ * @author      Lubna Mirza
+ * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
+ */
+
 public class HugeInt {
 
 	//Array size
 	private int intLength;
 	// this array will contain every digit of the huge integer array
 	public int digitArr[];
+
+	public HugeInt(){
+		
+	}
 
 	/********************Constructor Taking String***************************/
 	public HugeInt(String numStr)
@@ -49,7 +79,6 @@ public class HugeInt {
 		this.intLength = tempLength;
 	}
 
-	public HugeInt() { digitArr = new int[10]; }
 	/********************Constructor taking array***************************/
 	public HugeInt(int[] array)
 	{
@@ -206,13 +235,12 @@ public class HugeInt {
 	}
 
 	/********************Division Method***************************/
-	public HugeInt divide(HugeInt val2) {
+	public void divide(HugeInt val2) {
 
 		//Trim both arrays to make sure we don't have any leading zeroes
 		HugeInt dividend = trimArray(this);
 		HugeInt divisor = trimArray(val2);
 
-		//THIS MAY NOT BE AN EMPTY ARRAY IM NOT SURE.
 		HugeInt result = new HugeInt(dividend.digitArr);
 
 		//compare to make sure that the dividend is larger than the divisor
@@ -221,51 +249,35 @@ public class HugeInt {
 		{
 			System.out.println("Invalid Division Request");
 		}
+		int index = 1;
+		System.out.println("LENGTH" + dividend.digitArr.length);
+		for(int i = 1; i <= dividend.digitArr.length; i++)
+		{
+			if (canSubtract(i,dividend.digitArr,divisor.digitArr) == 1)
+			{
+				index = i;
+				break;
+			}
+		}
 
 		//capturing the length of the divisor
 		int divisorLength = divisor.digitArr.length;
-
-		divideDigits(dividend, divisor, divisorLength, result);
-		return result;
-	}
-
-	public void divideDigits(HugeInt dividend, HugeInt divisor, int divisorLength, HugeInt result)
-	{
-		//the appropriate amount to divide the dividend by will either be the size of the divisor
-		//or the size of the divisor plus 1.
-
-		int[] array = new int[divisorLength];
+		int[] array = new int[index];
 		for (int i = 0; i < array.length; i++)
 		{
 			array[i] = dividend.digitArr[i];
-			//System.out.println(array[i]);
+
+			System.out.println("hey" + array[i]);
 		}
+		//call the helper divide function that will divide the two
+		divideDigits(array,divisor.digitArr);
 
-		if (compare(array,divisor.digitArr) == 1)
-		{
-			int[] array2 = new int[divisorLength+1];
-			for (int i = 0; i < array2.length; i++)
-			{
-				array2[i] = dividend.digitArr[i];
-				// System.out.println(array2[i]);
-			}
 
-			int arrLength = array2.length;
-			int[] remainingArr = new int[dividend.digitArr.length-divisor.digitArr.length];
-			for (int i = 0; i<remainingArr.length-1; i++)
-			{
-				remainingArr[i] = dividend.digitArr[arrLength+i];
-			}
 
-			//call the helper divide function that will divide the two
-			divideDigit(array2,divisor.digitArr,result.digitArr,arrLength);
-		}
 	}
 
-	public void divideDigit(int[] dividend, int[] divisor, int[] resultArr, int arrLength) {
-		int counter = 1;
-		int[] remainder;
-		int[] newArr;
+	public void divideDigits(int[] dividend, int[] divisor) {
+		int counter = 0;
 
 		while (compare(dividend,divisor) == 0)
 		{
@@ -273,28 +285,28 @@ public class HugeInt {
 			dividend = trimArray(dividend);
 			counter++;
 		}
-		if (compare(dividend,divisor) == 1)
-		{
-			//return dividend because it contains the remainder
-			remainder = dividend;
-			remainder = trimArray(remainder);
-			resultArr = new int[resultArr.length-arrLength];
-			for (int i = 0; i < remainder.length; i++)
-			{
-				resultArr[i] = remainder[i];
-				System.out.println("NEW ARRAY");
-				System.out.println(resultArr[i]);
-			}
-
-		}
-
 		System.out.println("COUNTER");
-		// System.out.println(counter);
+		System.out.println(counter);
 
 
 	}
 
+	/********************Can I Subtract?***************************/
+	//returns 1 means yes 0 means no
+	public int canSubtract (int index, int[] dividend, int[] divisor)
+	{
+		int[] newArray = new int[index];
+		for (int i = 0; i < index; i++)
+		{
+			newArray[i] = dividend[i];
+		}
 
+		if (compare(newArray,divisor) == 0 || compare(newArray,divisor) ==2)
+		{
+			return 1;
+		}
+		return 0;
+	}
 
 
 	/********************Comparator Method***************************/
