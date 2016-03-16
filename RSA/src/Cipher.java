@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Scanner;
@@ -43,8 +44,17 @@ public class Cipher {
 			//0 if encryption, 1 if decryption
 			int type = 0;
 
-			//
-
+			//If string contains e, public key therefore encrypt.
+			if(keyFileText.contains("<evalue>")){
+				type = 0;
+			}
+			else if (keyFileText.contains("<dvalue>")){
+				type = 1;
+			}
+			else{
+				JOptionPane.showMessageDialog(null, "Key file has incorrect format");
+				return;
+			}
 
 			if (type == 0) {
 				if (outputFileName.equals(" "))
@@ -60,7 +70,8 @@ public class Cipher {
 			}
 		}
 		catch(Exception e){
-
+			JOptionPane.showMessageDialog(null, "Error reading files for ciphering");
+			return;
 		}
 	}
 

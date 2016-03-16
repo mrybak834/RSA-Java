@@ -199,6 +199,17 @@ public class KeyPair extends HugeInt {
 	}
 
 
+
+	private static boolean relativelyPrime(HugeInt a, HugeInt b) {
+		HugeInt t;
+		while(b.compare(b, new HugeInt("0")) == 0 || b.compare(b, new HugeInt("0")) == 3){
+			t = a;
+			a = b;
+			b = t.mod(b);
+		}
+		return a.compare(a, new HugeInt("1")) == 2;
+	}
+
 	/**
 	 * Creates the public key, which is the first one to be created.
 	 *
@@ -206,10 +217,19 @@ public class KeyPair extends HugeInt {
 	 *
 
 	 */
-	public int createPublicKey(){
+	public void createPublicKey(){
+		HugeInt e = nKey.subtract(new HugeInt("1"));
 
+		while(!relativelyPrime(e, phi)){
+			if(e.compare(e, new HugeInt("0")) == 2){
+				JOptionPane.showMessageDialog(null, "Could not produce a public key");
+				return;
+			}
 
-		return 0;
+			e = e.subtract(new HugeInt("1"));
+		}
+
+		publicKey = e;
 	}
 
 	/**
@@ -219,11 +239,13 @@ public class KeyPair extends HugeInt {
 	 * Private key (d) = (1 + (k)(phi)) / publicKey,
 	 * where k is an integer value such that (1 + (k)(phi)) can be evenly divided by
 	 * the public key.
-	 * 
-	 * @param keys
-	 * @param phi
+	 *
 	 */
-	public int createPrivateKey(KeyPair keys, HugeInt phi){
+	public int createPrivateKey(){
+		//Create dividend
+		HugeInt dividend = new HugeInt("1");
+		dividend = dividend.add(phi);
+
 
 		return 0;
 	}
@@ -232,15 +254,29 @@ public class KeyPair extends HugeInt {
 	/**
 	 * Takes 2 prime number values and returns true only if both of the values
 	 * are prime numbers and are large enough (greater than 127 and a cardinality
-	 * greater than the blocking number) to be used. If one of the values is
-	 * not usable, a new correct value replaces the unusable value.
+	 * greater than the blocking number) to be used.
 	 * 
 	 * @param p1
-	 * @param p2
 	 */
-	protected boolean primality(HugeInt p1, HugeInt p2){
+	protected boolean primality(HugeInt p1) {
+		if (p1.compare(p1, new HugeInt("1")) == 1 || p1.compare(p1, new HugeInt("1")) == 2) {
+			return false;
+		} else if (p1.compare(p1, new HugeInt("3")) == 1 || p1.compare(p1, new HugeInt("3")) == 2) {
+			return true;
+		} else if (p1.compare(p1.mod(new HugeInt("2")), new HugeInt("0")) == 2 || p1.compare(p1.mod(new HugeInt("3")), new HugeInt("0")) == 2) {
+			return false;
+		}
 
+		int i = 5;
+
+		while (p1.compare(p1, new HugeInt(Integer.toString((i * i)))) == 0 || p1.compare(p1, new HugeInt(Integer.toString((i * i)))) == 2) {
+			if (p1.compare(p1.mod(new HugeInt(Integer.toString(i))), new HugeInt("0")) == 2 || p1.compare(p1.mod(new HugeInt(Integer.toString((i + 2)))), new HugeInt("0")) == 2)
+				return false;
+
+			i = i + 6;
+		}
 		return true;
+
 	}
 
 }

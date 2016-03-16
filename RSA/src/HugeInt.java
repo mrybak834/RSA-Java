@@ -23,31 +23,6 @@
  * @author      Lubna Mirza
  * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
  */
-/**
- * Handles all operations and storage for very large integers.
- *
- * The single data member is a value, which is the vector-based
- * representation of a large integer.
- *
- * The default constructor hugeInt() acts as a dummy constructor for use in
- * child classes.
- * The main constructor hugeInt(String) takes a string representation of an
- * integer and generates a value.
- *
- * All other methods are mathematical operations that can be performed on the
- * local value, given an outside value.
- * The math operations include:
- *    Addition, subtraction, multiplication, division, modulus, relational
- * operations, and exponentiation.
- *
- * @version     1.0.0
- * @university  University of Illinois at Chicago
- * @course      CS342 - Software Design
- * @package     Project #03 - RSA-Java
- * @author      Marek Rybakiewicz
- * @author      Lubna Mirza
- * @license     GNU Public License <http://www.gnu.org/licenses/gpl-3.0.txt>
- */
 
 public class HugeInt {
 
@@ -56,10 +31,10 @@ public class HugeInt {
 	// this array will contain every digit of the huge integer array
 	public int digitArr[];
 
+	//Default constructor, does nothing
 	public HugeInt(){
-		
-	}
 
+	}
 	/********************Constructor Taking String***************************/
 	public HugeInt(String numStr)
 	{
@@ -80,11 +55,20 @@ public class HugeInt {
 	}
 
 	/********************Constructor taking array***************************/
+	public HugeInt(int numSpaces)
+	{
+		this.digitArr= new int[numSpaces];
+		this.intLength = numSpaces;
+	}
+
+	/********************Constructor taking array***************************/
 	public HugeInt(int[] array)
 	{
 		this.digitArr = array;
 		this.intLength = array.length;
 	}
+
+
 
 
 	/********************Get Padded Array***************************/
@@ -147,18 +131,24 @@ public class HugeInt {
 	public HugeInt subtract(HugeInt addend)
 	{
 		HugeInt result;
-		int paddedArr[] = getPaddedArray(addend);
+		int[] paddedArr;
 
-		//add first argument to the padded array
-		addDigits(paddedArr, paddedArr.length-1, this.digitArr);
-		//subtract second argument to the padded array
-		subDigits(paddedArr, paddedArr.length-1, addend.digitArr);
-		//store result into a new instance
-		result = new HugeInt(paddedArr);
-		//trim result
-		HugeInt trimmedResult = trimArray(result);
-		//return instance
-		return trimmedResult;
+		if (compare(this.digitArr,addend.digitArr) == 0)
+		{
+			paddedArr = getPaddedArray(addend);
+			//add first argument to the padded array
+			addDigits(paddedArr, paddedArr.length-1, this.digitArr);
+			//subtract second argument to the padded array
+			subDigits(paddedArr, paddedArr.length-1, addend.digitArr);
+			//store result into a new instance
+			result = new HugeInt(paddedArr);
+			//trim result
+			HugeInt trimmedResult = trimArray(result);
+			//return instance
+			return trimmedResult;
+		}
+		System.out.println("Subtraction Error");
+		return this;
 	}
 
 	//subtract method helper function
@@ -190,8 +180,6 @@ public class HugeInt {
 	}
 
 	/********************Multiplication Method***************************/
-
-	//Errors So Far: str1 cannot be smaller than str2.
 
 	public HugeInt multiply(HugeInt val2) {
 		HugeInt result;
@@ -234,60 +222,54 @@ public class HugeInt {
 		addDigits(result, resultIndex, carry, productVal);
 	}
 
+
 	/********************Division Method***************************/
-	public void divide(HugeInt val2) {
+	public HugeInt divide(HugeInt val2) {
 
 		//Trim both arrays to make sure we don't have any leading zeroes
 		HugeInt dividend = trimArray(this);
 		HugeInt divisor = trimArray(val2);
 
-		HugeInt result = new HugeInt(dividend.digitArr);
+		HugeInt result = new HugeInt(dividend.digitArr.length);
 
 		//compare to make sure that the dividend is larger than the divisor
 		int comparison = compare(dividend,divisor);
-		if (comparison != 0 && comparison != 2)
+		if ((comparison != 0 && comparison != 2) || (val2.digitArr[0] == 0 && val2.digitArr.length == 1) )
 		{
 			System.out.println("Invalid Division Request");
+			return this;
 		}
-		int index = 1;
-		System.out.println("LENGTH" + dividend.digitArr.length);
-		for(int i = 1; i <= dividend.digitArr.length; i++)
-		{
-			if (canSubtract(i,dividend.digitArr,divisor.digitArr) == 1)
-			{
-				index = i;
-				break;
-			}
-		}
-
-		//capturing the length of the divisor
-		int divisorLength = divisor.digitArr.length;
-		int[] array = new int[index];
-		for (int i = 0; i < array.length; i++)
-		{
-			array[i] = dividend.digitArr[i];
-
-			System.out.println("hey" + array[i]);
-		}
-		//call the helper divide function that will divide the two
-		divideDigits(array,divisor.digitArr);
-
-
-
-	}
-
-	public void divideDigits(int[] dividend, int[] divisor) {
-		int counter = 0;
+		int counter = 1;
 
 		while (compare(dividend,divisor) == 0)
 		{
-			subDigits(dividend,dividend.length-1,divisor);
+			if (counter == 100)
+			{
+				addDigits(result.digitArr,result.digitArr.length-1, counter);
+				counter = 0;
+			}
+			subDigits(dividend.digitArr,dividend.digitArr.length-1,divisor.digitArr);
 			dividend = trimArray(dividend);
 			counter++;
 		}
-		System.out.println("COUNTER");
-		System.out.println(counter);
+		addDigits(result.digitArr,result.digitArr.length-1, counter+1);
 
+		return result;
+	}
+
+	/********************MODULUS METHOD***************************/
+	public HugeInt mod(HugeInt val2)
+	{
+		HugeInt result = new HugeInt(this.digitArr);
+		HugeInt divisionResult = this.divide(val2);
+		HugeInt multResult = divisionResult.multiply(val2);
+		result = this.subtract(multResult);
+
+		for (int i = 0; i< result.digitArr.length;i++)
+		{
+			System.out.print(result.digitArr[i]);
+		}
+		return result;
 
 	}
 
@@ -439,139 +421,3 @@ public class HugeInt {
 		System.out.println("");
 	}
 }
-//
-//public class HugeInt {
-//	/**
-//	 * A Vector of integers that stores a huge integer value. A valid value is
-//	 * unsigned, and indexed with the least significant bit in the 0<sup>th</sup>
-//	 * position of the vector.
-//	 */
-//	protected int[] value;
-//
-//	/**
-//	 * The constructor takes a String representation of an integer and creates a new
-//	 * value that is a vector representation of the parameter.
-//	 *
-//	 * @param newVal
-//	 */
-//	public HugeInt(String newVal){
-//
-//	}
-//
-//	/**
-//	 * Returns a new value, which is the result of adding the parameter
-//	 * value to the local value.
-//	 *
-//	 * @param x
-//	 */
-//	protected HugeInt add(HugeInt x){
-//		return null;
-//	}
-//
-//	/**
-//	 * Returns a new value, which is the result of dividing the local
-//	 * value by the parameter value.
-//	 *
-//	 * @param x
-//	 */
-//	protected HugeInt divide(HugeInt x){
-//		return null;
-//	}
-//
-//	/**
-//	 * Returns true if the local value is equal to the parameter value.
-//	 *
-//	 * @param x
-//	 */
-//	protected boolean equal(HugeInt x){
-//		return false;
-//	}
-//
-//	/**
-//	 * Returns true if the local value is greater than the parameter
-//	 * value.
-//	 *
-//	 * @param x
-//	 */
-//	protected boolean greaterThan(HugeInt x){
-//		return false;
-//	}
-//
-//	/**
-//	 * Returns true if the local value is greater than or equal to the
-//	 * parameter value.
-//	 *
-//	 * @param x
-//	 */
-//	protected boolean greaterThanOrEqual(HugeInt x){
-//		return false;
-//	}
-//
-//	/**
-//	 * The default constructor, used as a gateway for child classes to be able to
-//	 * inherit while not filling in unnecessary values.
-//	 */
-//	public HugeInt(){
-//
-//	}
-//
-//	/**
-//	 * Returns true if the local value is less than the parameter value.
-//	 *
-//	 * @param x
-//	 */
-//	protected boolean lessThan(HugeInt x){
-//		return false;
-//	}
-//
-//	/**
-//	 * Returns true if the local value is less than or equal to the parameter
-//	 * value.
-//	 *
-//	 * @param x
-//	 */
-//	protected boolean lessThanOrEqual(HugeInt x){
-//		return false;
-//	}
-//
-//	/**
-//	 * Returns a new value, which is the result of performing the modulus
-//	 * operation on the local value using the parameter value.
-//	 *
-//	 * @param x
-//	 */
-//	protected HugeInt modulus(HugeInt x){
-//		return null;
-//	}
-//
-//	/**
-//	 * Returns a new value, which is the result of multiplying the parameter
-//	 * value with the local value.
-//	 *
-//	 * @param x
-//	 */
-//	protected HugeInt multiply(HugeInt x){
-//		return null;
-//	}
-//
-//	/**
-//	 * Returns a new value, which is the result of subtracting the parameter
-//	 * value from the local value.
-//	 *
-//	 * @param x
-//	 */
-//	protected HugeInt subtract(HugeInt x){
-//		return null;
-//	}
-//
-//	/**
-//	 * Returns a new value, which is the result of exponentiating the local
-//	 * value by the parameter value.
-//	 *
-//	 * @param x
-//	 */
-//	protected HugeInt toThePowerOf(HugeInt x){
-//		return null;
-//	}
-//
-//}

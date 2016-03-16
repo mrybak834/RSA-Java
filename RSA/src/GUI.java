@@ -515,14 +515,14 @@ public class GUI extends JFrame implements ActionListener, KeyListener {
 	protected void keyIntCreator(String p1, String p2 ){
 		try{
 			//Create HugeInts
-			HugeInt prime1 = new HugeInt(p1);
-			HugeInt prime2 = new HugeInt(p2);
+			HugeInt prime1 = new HugeInt("15485863");
+			HugeInt prime2 = new HugeInt("32452843");
+
 
 			//Check if prime
-			//TODO
-			if (new KeyPair(prime1, prime2).primality(prime1, prime2) == false) {
-				JOptionPane.showMessageDialog(null, "Numbers must be prime");
-				return;
+			if (new KeyPair(prime1, prime2).primality(prime1) == false || new KeyPair(prime1, prime2).primality(prime2) == false) {
+				//JOptionPane.showMessageDialog(null, "Numbers must be prime");
+				//return;
 			}
 
 			//Check if p*q is greater than 16129
